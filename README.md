@@ -79,6 +79,7 @@ How it stays fast:
 
 - `TKMP_LOG=FILE` logs every image transmit, placement and delete, plus resizes, for debugging.
 - `TKMP_NO_GRAPHICS=1` forces text-only output. Without kitty graphics, tkmp falls back on its own: headings become bold text and diagrams show their source.
+- Text wraps at 110 columns at most. `tkmp --max-width N FILE` changes the limit, for example in a zoomed or full-screen pane, and `--max-width 0` lets text fill the pane. `TKMP_MAX_WIDTH=N` sets the same when the option is left out, which also reaches tkmp started by the Rex key.
 - In a narrow split, a diagram that would have to shrink by more than 25% is laid out vertically instead, so its labels stay readable.
 - While a diagram is broken, its last good render stays on screen with the parse error and its position underneath.
 - Inter and JetBrains Mono are under the SIL Open Font License; Pele is MIT. Their license files are in [`assets/`](assets).

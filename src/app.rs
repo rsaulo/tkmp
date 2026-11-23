@@ -26,6 +26,17 @@ const MARK: Duration = Duration::from_millis(1500);
 const MAX_WIDTH: usize = 110;
 const GUTTER: usize = 2;
 
+/// The text column limit: `--max-width`, else `TKMP_MAX_WIDTH`, else `MAX_WIDTH`.
+/// `0` lets text fill the pane.
+fn resolve_max_width(cli: Option<usize>) -> usize {
+    let env = || std::env::var("TKMP_MAX_WIDTH").ok().and_then(|v| v.trim().parse::<usize>().ok());
+    match cli.or_else(env) {
+        Some(0) => usize::MAX,
+        Some(n) => n.max(10),
+        None => MAX_WIDTH,
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum RowKind {
     Text(Line),
@@ -84,6 +95,7 @@ pub struct App {
     cell: Cell,
     cols: u16,
     rows: u16,
+    max_width: usize,
 
     top: usize,
     follow: bool,
@@ -111,7 +123,7 @@ pub struct App {
     out: Vec<u8>,
 }
 
-pub fn run(path: &Path) -> anyhow::Result<()> {
+pub fn run(path: &Path, max_width: Option<usize>) -> anyhow::Result<()> {
     let path = std::fs::canonicalize(path)?;
     crate::fonts::warm_system();
     let (pele_tx, pele_rx) = unbounded();
@@ -138,6 +150,7 @@ pub fn run(path: &Path) -> anyhow::Result<()> {
         cell,
         cols,
         rows,
+        max_width: resolve_max_width(max_width),
         top: 0,
         follow: false,
         layout: Vec::new(),
@@ -282,7 +295,7 @@ impl App {
     }
 
     fn content_width(&self) -> usize {
-        (self.cols as usize).saturating_sub(GUTTER + 2).clamp(10, MAX_WIDTH)
+        (self.cols as usize).saturating_sub(GUTTER + 2).clamp(10, self.max_width)
     }
 
     fn view_height(&self) -> usize {
